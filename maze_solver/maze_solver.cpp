@@ -65,7 +65,55 @@ Result bfs      (const Grid& g, pair<int,int> s, pair<int,int> t){
 
 
 // Result dfsPath  (const Grid& g, pair<int,int> s, pair<int,int> t);
-Result dijkstra (const Grid& g, pair<int,int> s, pair<int,int> t);
+int cellcost(char ch){
+    if(ch>='0' && ch<='9'){
+        return ch - '0';
+    }
+
+    return 1;
+}
+Result dijkstra (const Grid& g, pair<int,int> s, pair<int,int> t){
+    Result ans;
+    ans.cost=0;
+    ans.expanded=0;
+
+    vector<vector<int>> dist(g.R,vector<int>(g.C,INT_MAX));
+
+    priority_queue<pair<int,pair<int,int>>,vector<pair<int,pair<int,int>>>,greater<pair<int ,pair<int,int>>> > p;
+    p.push({0,{s.first,s.second}});
+    dist[s.first][s.second]=0;
+
+    while(!p.empty()){
+        auto [cost,pos] = p.top();
+        int i=pos.first;
+        int j=pos.second;
+        p.pop();
+
+        if(cost>dist[i][j]){
+            continue;
+        }
+
+        ans.expanded++;
+
+        if(pos==t){
+            break;
+        }
+        for(auto n:neighbours(g,i,j)){
+            int x=n.first;
+            int y=n.second;
+            
+            int d=cost+cellcost(g.cells[x][y]);
+
+            if(d<dist[x][y]){
+                dist[x][y]=d;
+                p.push({d,n});
+            }
+        }
+    }
+
+    ans.cost=dist[t.first][t.second];
+    return ans;
+}
 Result astar    (const Grid& g, pair<int,int> s, pair<int,int> t);
 
 void shortest(const vector<vector<int>>& dist,vector<int>&indx,int&cur_cost,int &best,vector<bool>&vis,vector<int>& outOrder){
@@ -167,7 +215,20 @@ int main(){
     vector <int> non_weighted_path;
     int non_weighted_path_length=bestOrder(key_points_distance,0,total_keypoints-1,non_weighted_path);
 
-    cout << non_weighted_path_length << endl;
+
+// K+2 * K+2 matrix for storing min distance between each key point in a weighted graph
+    vector<vector<int>> key_points_distance_weighted(total_keypoints,vector<int>(total_keypoints,0));
+    for(int i=0;i<total_keypoints;i++){
+        for(int j=i;j<total_keypoints;j++){
+            key_points_distance_weighted[i][j]=dijkstra(g,keypoints[i],keypoints[j]).cost;
+            key_points_distance_weighted[j][i]=key_points_distance[i][j];
+        }
+    }
+
+// Finding best path for weighted graphs
+    vector<int> weighted_path;
+    int weighted_path_length=bestOrder(key_points_distance_weighted,0,total_keypoints-1,weighted_path);
+    cout << weighted_path_length << endl;
     return 0;
 }
 

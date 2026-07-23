@@ -30,10 +30,28 @@ vector<pair<int,int>> neighbours(const Grid& g, int r, int c){
     return n;
 }
 
+//Reconstruct path of exploration 
+vector<pair<int,int>> reconstruct_path(const vector<vector<pair<int,int>>>&parent,pair<int,int> s,pair<int,int> t){
+    pair<int,int> cur=t;
+    vector<pair<int,int>> path;
+
+    while(cur!=s){
+        path.push_back(cur);
+        cur=parent[cur.first][cur.second];
+    }
+    
+    path.push_back(s);
+
+    reverse(path.begin(),path.end());
+
+    return path;
+}
+
 // Single-pair shortest path — implement all four:
 Result bfs      (const Grid& g, pair<int,int> s, pair<int,int> t){
     Result search;
     search.cost=0;
+    vector<vector<pair<int,int>>> parent(g.R,vector<pair<int,int>>(g.C,{-1,-1}));
 
     vector<vector<bool>> vis(g.R,vector<bool>(g.C,false));
     queue<pair<int,int>>q;
@@ -53,6 +71,7 @@ Result bfs      (const Grid& g, pair<int,int> s, pair<int,int> t){
             for(auto n:neighbours(g,i,j)){
                 if(!vis[n.first][n.second]){
                     vis[n.first][n.second]=true;
+                    parent[n.first][n.second]={i,j};
                     q.push(n);
                 }
             }
@@ -60,6 +79,7 @@ Result bfs      (const Grid& g, pair<int,int> s, pair<int,int> t){
         search.cost++;
     }
 
+    search.path=reconstruct_path(parent,s,t);
     return search;
 }
 
@@ -76,6 +96,7 @@ Result dijkstra (const Grid& g, pair<int,int> s, pair<int,int> t){
     Result ans;
     ans.cost=0;
     ans.expanded=0;
+    vector<vector<pair<int,int>>> parent(g.R,vector<pair<int,int>>(g.C,{-1,-1}));
 
     vector<vector<int>> dist(g.R,vector<int>(g.C,INT_MAX));
 
@@ -106,12 +127,14 @@ Result dijkstra (const Grid& g, pair<int,int> s, pair<int,int> t){
 
             if(d<dist[x][y]){
                 dist[x][y]=d;
+                parent[x][y]={i,j};
                 p.push({d,n});
             }
         }
     }
 
     ans.cost=dist[t.first][t.second];
+    ans.path=reconstruct_path(parent,s,t);
     return ans;
 }
 
@@ -124,6 +147,8 @@ Result astar    (const Grid& g, pair<int,int> s, pair<int,int> t){
     Result ans;
     ans.cost=0;
     ans.expanded=0;
+
+    vector<vector<pair<int,int>>> parent(g.R,vector<pair<int,int>>(g.C,{-1,-1}));
 
     vector<vector<int>> dist(g.R,vector<int>(g.C,INT_MAX));
 
@@ -155,12 +180,14 @@ Result astar    (const Grid& g, pair<int,int> s, pair<int,int> t){
 
             if(d<dist[x][y]){
                 dist[x][y]=d;
+                parent[x][y]={i,j};
                 p.push({d+heuristic(n,t),n});
             }
         }
     }
 
     ans.cost=dist[t.first][t.second];
+    ans.path=reconstruct_path(parent,s,t);
     return ans;
 
 }
@@ -270,7 +297,7 @@ int main(){
     for(int i=0;i<total_keypoints;i++){
         for(int j=i;j<total_keypoints;j++){
             key_points_distance_weighted[i][j]=dijkstra(g,keypoints[i],keypoints[j]).cost;
-            key_points_distance_weighted[j][i]=key_points_distance[i][j];
+            key_points_distance_weighted[j][i]=key_points_distance_weighted[i][j];
         }
     }
 

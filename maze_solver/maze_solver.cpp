@@ -13,7 +13,15 @@ struct Result {
     int expanded;                              // cells visited by the search
 };
 
+struct Stats{
+    // Stats to be calculated
+    int bfsPairs =0;
+    int dijkstraExpanded= 0;
+    int astarExpanded=0;
+    int dfsOrderings =0 ;
+};
 
+Stats maze_stats;
 // Shared neighbour helper (no copy-paste across algorithms):
 vector<pair<int,int>> neighbours(const Grid& g, int r, int c){
     vector<pair<int,int>> n;
@@ -195,6 +203,7 @@ Result astar    (const Grid& g, pair<int,int> s, pair<int,int> t){
 void shortest(const vector<vector<int>>& dist,vector<int>&indx,int&cur_cost,int &best,vector<bool>&vis,vector<int>& outOrder){
 // base case ---> if i have visited all the index from start then I should go to the goal
     if(indx.size() == vis.size()){
+        maze_stats.dfsOrderings++;
         cur_cost+=dist[indx.back()][dist.size()-1];
         indx.push_back(dist.size()-1);
         if(cur_cost<best){
@@ -283,35 +292,51 @@ int main(int argc,char* argv[]){
     keypoints.push_back(goal);
     total_keypoints=keypoints.size();
 // K+2 * K+2 matrix for storing min distance between each key point
-    vector<vector<int>> key_points_distance(total_keypoints,vector<int>(total_keypoints,0));
+    vector<vector<int>> bfs_matrix(total_keypoints,vector<int>(total_keypoints,0));
 
     for(int i=0;i<total_keypoints;i++){
-        for(int j=i;j<total_keypoints;j++){
-            key_points_distance[i][j]=bfs(g,keypoints[i],keypoints[j]).cost;
-            key_points_distance[j][i]=key_points_distance[i][j];
+        bfs_matrix[i][i]=0;
+        for(int j=i+1;j<total_keypoints;j++){
+            maze_stats.bfsPairs++;
+            bfs_matrix[i][j]=bfs(g,keypoints[i],keypoints[j]).cost;
+            bfs_matrix[j][i]=bfs_matrix[i][j];
         }
     }
 
 // Finding best path for non weighted graphs
     vector <int> non_weighted_path;
-    int non_weighted_path_length=bestOrder(key_points_distance,0,total_keypoints-1,non_weighted_path);
+    int non_weighted_path_length=bestOrder(bfs_matrix,0,total_keypoints-1,non_weighted_path);
 
 
 // K+2 * K+2 matrix for storing min distance between each key point in a weighted graph
-    vector<vector<int>> key_points_distance_weighted(total_keypoints,vector<int>(total_keypoints,0));
+    vector<vector<int>> dijkstra_matrix(total_keypoints,vector<int>(total_keypoints,0));
     for(int i=0;i<total_keypoints;i++){
-        for(int j=i;j<total_keypoints;j++){
-            key_points_distance_weighted[i][j]=dijkstra(g,keypoints[i],keypoints[j]).cost;
-            key_points_distance_weighted[j][i]=key_points_distance_weighted[i][j];
+        dijkstra_matrix[i][i]=0;
+        for(int j=i+1;j<total_keypoints;j++){
+            Result r= dijkstra(g,keypoints[i],keypoints[j]);
+            dijkstra_matrix[i][j]=r.cost;
+            dijkstra_matrix[j][i]=dijkstra_matrix[i][j];
+
+            maze_stats.dijkstraExpanded+=r.expanded;
         }
     }
 
 // Finding best path for weighted graphs
     vector<int> weighted_path;
-    int weighted_path_length=bestOrder(key_points_distance_weighted,0,total_keypoints-1,weighted_path);
-    cout << weighted_path_length << endl;
+    int weighted_path_length=bestOrder(dijkstra_matrix,0,total_keypoints-1,weighted_path);
+
+// K+2 * K+2 matrix for A* search
+    vector<vector<int>> astar_matrix(total_keypoints,vector<int>(total_keypoints,0));
+    for(int i=0;i<total_keypoints;i++){
+        astar_matrix[i][i]=0;
+        for(int j=i+1;j<total_keypoints;j++){
+            Result r= astar(g,keypoints[i],keypoints[j]);
+            astar_matrix[i][j]=r.cost;
+            astar_matrix[j][i]=astar_matrix[i][j];
+
+            maze_stats.astarExpanded+=r.expanded;
+        }
+    }
+
     return 0;
 }
-
-
-

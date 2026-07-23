@@ -25,7 +25,7 @@ Stats maze_stats;
 // Shared neighbour helper (no copy-paste across algorithms):
 vector<pair<int,int>> neighbours(const Grid& g, int r, int c){
     vector<pair<int,int>> n;
-    vector<int>dir = {0,1,0,-1,0};
+    vector<int>dir = {0,-1,0,1,0};
 
     for(int i=0;i<4;i++){
         int x=r+dir[i];
@@ -369,7 +369,32 @@ for(int i=0;i+1<non_weighted_path.size();i++){
 }
 walk.push_back(goal);
 
-printPath(g.cells,walk);
-printCoinOrder(keypoints,weighted_path);
+
+    // OUTPUT
+    cout << "=== UNIFORM COST (BFS + DFS) ===\n";
+    cout << "Coins: " << total_keypoints-2 << "\n";
+    cout << "Best order: " ; 
+    printCoinOrder(keypoints,non_weighted_path) ;
+    cout<< "\n";
+    cout << "Total steps: " << non_weighted_path_length << "\n";
+    cout << "Path:\n";
+    printPath(g.cells,walk);
+    cout << "\n";
+
+    cout << "=== WEIGHTED (Dijkstra + A*) ===\n";
+    cout << "Coins: " << total_keypoints-2 << "\n";
+    cout << "Best order: " ;
+    printCoinOrder(keypoints,weighted_path);
+    cout << "\n";
+    cout << "Total cost: " << weighted_path_length << "\n";
+    cout << "A* cells expanded across all pair queries: " << maze_stats.astarExpanded << "\n";
+    cout << "Dijkstra cells expanded across all pair queries: " << maze_stats.dijkstraExpanded << "\n";
+    cout << "\n";
+
+    cout << "SUMMARY | BFS pairs computed: " << maze_stats.bfsPairs
+         << " | DFS orderings tried: " << maze_stats.dfsOrderings
+         << " | Dijkstra:" << maze_stats.dijkstraExpanded
+         << " | A*:" << maze_stats.astarExpanded << "\n";
+
     return 0;
 }

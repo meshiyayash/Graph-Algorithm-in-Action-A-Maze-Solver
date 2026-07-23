@@ -18,7 +18,6 @@ struct Stats{
     int bfsPairs =0;
     int dijkstraExpanded= 0;
     int astarExpanded=0;
-    int dfsOrderings =0 ;
 };
 
 Stats maze_stats;
@@ -200,10 +199,10 @@ Result astar    (const Grid& g, pair<int,int> s, pair<int,int> t){
 
 }
 
-void shortest(const vector<vector<int>>& dist,vector<int>&indx,int&cur_cost,int &best,vector<bool>&vis,vector<int>& outOrder){
+void shortest(const vector<vector<int>>& dist,vector<int>&indx,int&cur_cost,int &best,vector<bool>&vis,vector<int>& outOrder,int&dfsOrderings){
 // base case ---> if i have visited all the index from start then I should go to the goal
     if(indx.size() == vis.size()){
-        maze_stats.dfsOrderings++;
+        dfsOrderings++;
         cur_cost+=dist[indx.back()][dist.size()-1];
         indx.push_back(dist.size()-1);
         if(cur_cost<best){
@@ -228,7 +227,7 @@ void shortest(const vector<vector<int>>& dist,vector<int>&indx,int&cur_cost,int 
         cur_cost+=dist[indx.back()][i];
         vis[i]=true;
         indx.push_back(i);
-        shortest(dist,indx,cur_cost,best,vis,outOrder);
+        shortest(dist,indx,cur_cost,best,vis,outOrder,dfsOrderings);
 
         //backtracing
         indx.pop_back();
@@ -238,7 +237,7 @@ void shortest(const vector<vector<int>>& dist,vector<int>&indx,int&cur_cost,int 
 }
 
 // Coin-order backtracking:
-int bestOrder(const vector<vector<int>>& dist,int startIdx, int goalIdx, vector<int>& outOrder){
+int bestOrder(const vector<vector<int>>& dist,int startIdx, int goalIdx, vector<int>& outOrder,int&dfsOrderings){
     int best=INT_MAX ,cur_cost=0;
 
     vector<bool> vis(dist.size()-1,false);
@@ -246,7 +245,7 @@ int bestOrder(const vector<vector<int>>& dist,int startIdx, int goalIdx, vector<
 
     vector<int> indx;
     indx.push_back(0);
-    shortest(dist,indx,cur_cost,best,vis,outOrder);
+    shortest(dist,indx,cur_cost,best,vis,outOrder,dfsOrderings);
     
     return best;
 }
@@ -324,7 +323,8 @@ int main(int argc,char* argv[]){
 
 // Finding best path for non weighted graphs
     vector <int> non_weighted_path;
-    int non_weighted_path_length=bestOrder(bfs_matrix,0,total_keypoints-1,non_weighted_path);
+    int dfsOrderings_unweighted =0 ;
+    int non_weighted_path_length=bestOrder(bfs_matrix,0,total_keypoints-1,non_weighted_path,dfsOrderings_unweighted);
 
 
 // K+2 * K+2 matrix for storing min distance between each key point in a weighted graph
@@ -342,7 +342,8 @@ int main(int argc,char* argv[]){
 
 // Finding best path for weighted graphs
     vector<int> weighted_path;
-    int weighted_path_length=bestOrder(dijkstra_matrix,0,total_keypoints-1,weighted_path);
+    int dfsOrderings_weighted=0;
+    int weighted_path_length=bestOrder(dijkstra_matrix,0,total_keypoints-1,weighted_path,dfsOrderings_weighted);
 
 // K+2 * K+2 matrix for A* search
     vector<vector<int>> astar_matrix(total_keypoints,vector<int>(total_keypoints,0));
@@ -392,7 +393,7 @@ walk.push_back(goal);
     cout << "\n";
 
     cout << "SUMMARY | BFS pairs computed: " << maze_stats.bfsPairs
-         << " | DFS orderings tried: " << maze_stats.dfsOrderings
+         << " | DFS orderings tried: " << dfsOrderings_unweighted
          << " | Dijkstra:" << maze_stats.dijkstraExpanded
          << " | A*:" << maze_stats.astarExpanded << "\n";
 

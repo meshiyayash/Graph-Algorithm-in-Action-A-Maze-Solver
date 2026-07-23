@@ -68,7 +68,7 @@ Result bfs      (const Grid& g, pair<int,int> s, pair<int,int> t){
         int size=q.size();
         while(size--){
             if(q.front()==t){
-                // cout << "hit\n";
+                search.path = reconstruct_path(parent,s,t);
                 return search;
             }
             int i=q.front().first;
@@ -252,6 +252,25 @@ int bestOrder(const vector<vector<int>>& dist,int startIdx, int goalIdx, vector<
 }
 
 
+void printPath(vector<string> g,const vector<pair<int,int>>&walk){
+    for(auto indx:walk){
+        if(g[indx.first][indx.second] != 'G'&&g[indx.first][indx.second] != 'S' && g[indx.first][indx.second] != 'c'){
+            g[indx.first][indx.second]='*';
+        }
+    }
+
+    for(int i=0;i<g.size();i++){
+        cout << g[i] << endl;
+    }
+}
+
+void printCoinOrder(const vector<pair<int,int>>& a,const vector<int>& order){
+    cout << "S -> ";
+    for(int i=1;i+1<order.size();i++){
+        cout<< "c(" << a[order[i]].first << "," << a[order[i]].second << ") -> ";
+    } 
+    cout << "G\n";
+}
 
 int main(int argc,char* argv[]){
     if(argc != 2){
@@ -338,5 +357,19 @@ int main(int argc,char* argv[]){
         }
     }
 
+//Storing the full path of the walk;
+vector<pair<int,int>> walk;
+for(int i=0;i+1<non_weighted_path.size();i++){
+    Result r=bfs(g,keypoints[non_weighted_path[i]],keypoints[non_weighted_path[i+1]]);
+
+    for(auto i:r.path){
+        walk.push_back(i);
+    }
+    walk.pop_back();
+}
+walk.push_back(goal);
+
+printPath(g.cells,walk);
+printCoinOrder(keypoints,weighted_path);
     return 0;
 }

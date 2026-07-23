@@ -114,7 +114,56 @@ Result dijkstra (const Grid& g, pair<int,int> s, pair<int,int> t){
     ans.cost=dist[t.first][t.second];
     return ans;
 }
-Result astar    (const Grid& g, pair<int,int> s, pair<int,int> t);
+
+//Defining heuristic function to be used in A*
+int heuristic(pair<int,int>s,pair<int,int>t){
+    return abs(s.first-t.first)+abs(s.second-t.second);
+}
+
+Result astar    (const Grid& g, pair<int,int> s, pair<int,int> t){
+    Result ans;
+    ans.cost=0;
+    ans.expanded=0;
+
+    vector<vector<int>> dist(g.R,vector<int>(g.C,INT_MAX));
+
+    priority_queue<pair<int,pair<int,int>>,vector<pair<int,pair<int,int>>>,greater<pair<int ,pair<int,int>>> > p;
+    p.push({heuristic(s,t),s});
+    dist[s.first][s.second]=0;
+
+    while(!p.empty()){
+        auto [cost,pos] = p.top();
+        int i=pos.first;
+        int j=pos.second;
+        p.pop();
+
+        
+        if(cost!=dist[i][j]+heuristic(pos,t)){
+            continue;
+        }
+
+        ans.expanded++;
+
+        if(pos==t){
+            break;
+        }
+        for(auto n:neighbours(g,i,j)){
+            int x=n.first;
+            int y=n.second;
+            
+            int d=dist[i][j]+cellcost(g.cells[x][y]);
+
+            if(d<dist[x][y]){
+                dist[x][y]=d;
+                p.push({d+heuristic(n,t),n});
+            }
+        }
+    }
+
+    ans.cost=dist[t.first][t.second];
+    return ans;
+
+}
 
 void shortest(const vector<vector<int>>& dist,vector<int>&indx,int&cur_cost,int &best,vector<bool>&vis,vector<int>& outOrder){
 // base case ---> if i have visited all the index from start then I should go to the goal

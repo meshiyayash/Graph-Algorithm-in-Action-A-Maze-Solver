@@ -244,21 +244,26 @@ int bestOrder(const vector<vector<int>>& dist,int startIdx, int goalIdx, vector<
 
 
 
-int main(){
+int main(int argc,char* argv[]){
+    if(argc != 2){
+        cout << "Usage: " << argv[0] << " <input_file>\n";
+        return 1;
+    }
+    ifstream fin(argv[1]);
 
 // Initialising grid and taking input    
     Grid g;
     pair<int,int> start,goal;
 
-    cin >> g.R >> g.C;
-    cin >> start.first >> start.second;
-    cin >> goal.first >> goal.second;
+    fin >> g.R >> g.C;
+    fin >> start.first >> start.second;
+    fin >> goal.first >> goal.second;
 
 // storing the graph 
 
     for(int i=0;i<g.R;i++){
         string s;
-        cin >> s;
+        fin >> s;
         g.cells.push_back(s);
     }
 
